@@ -33,8 +33,9 @@ def sendmsg404(ip):
 
 ###IP Functions###
 def getip():
-    website = requests.get('http://api.ipify.org')
-    ip = website.text
+    #Get IP Address using puiblic API
+    website = (requests.get('http://api.ipify.org')).text
+    ip = website.strip()
     print("Current Public IP is: {0}".format(ip))
     return ip
 
@@ -51,9 +52,10 @@ def setLip(ip):
     txt = open("lastip.txt", "w")
     txt.write(ip)
     txt.close()
-    lastip = ip
+    
 
-def CheckConnection(connected):
+def CheckConnection(connected=False):
+    #Check for web connection
     OS = platform.platform()
     while connected == False:
         if "Windows" in OS: # Windows and Unix have diffrent parameters for ping counts becuase standards
@@ -62,45 +64,36 @@ def CheckConnection(connected):
             pingtest = os.system("ping -c 1 8.8.8.8")
 
         if pingtest == 0:
-            print("Network good!")
+            print("Network good!\n")
             connected = True
         else:
             print("Network Bad will loop!")
 
-# Main loop for checking public IP address
-def checkip(ipchange):
-    while ipchange == False:
-        print("\nLooping\n")
-        CheckConnection(False) # Make sure still connected before trying to get an IP!
-        if getip() == getLip():
+
+def checkip(LastIP):
+    #Main loop for checking public IP address change
+    while True:
+        print("\nLooping\n")  
+        CheckConnection() # Make sure still connected before trying to get an IP!
+        CurrentIP=getip()  
+        if CurrentIP == LastIP:
             print("IP matched! Sleeping for a few minutes!")
-            time.sleep(120)
-            ipchange = False
+            time.sleep(300)
         else:
             print("IP changed!!!")
-            sendmsg(getip())
-            setLip(getip())
-
+            sendmsg(CurrentIP)
+            setLip(CurrentIP)
+            LastIP=getLip()
 
 ###MAIN###
-CheckConnection(False)
-
-# Check if IP address has changed from last run
+            
+#Check if there is a last IP Address
 if os.path.exists("lastip.txt"):
     print("Last IP address found!")
 else:
     print("Last IP address not found")
     sendmsg404(getip())
     setLip(getip())
-
-if getip() == getLip():
-    print("MATCH! - Not sending telegram message")
-    ipchange = False
-else:
-    print("NO MACTCH - Sending telegram message")
-    sendmsg(getip())
-    setLip(getip())
-    ipchange = False
-
-# Run main loop #
-checkip(ipchange)
+    
+#Run Main loop
+checkip(getLip())
