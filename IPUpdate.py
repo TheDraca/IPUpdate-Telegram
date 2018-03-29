@@ -7,7 +7,9 @@ import platform
 time.sleep(15)
 
 ###Config###
-SettingsFile = "TelegramSettings.cfg"  # Location of settings file to be used
+SettingsFile = "IPUpdateSettings.cfg"  # Location of settings file to be used
+
+
 def GetSetting(Option, File=SettingsFile):
     with open(File) as Settings:
         for line in Settings:
@@ -16,49 +18,59 @@ def GetSetting(Option, File=SettingsFile):
                 SettingResult = SettingResult.rstrip()
                 return SettingResult
 
+
 CHATID = GetSetting("CHATID")  # Chat ID for telegram user/group
 TOKEN = GetSetting("TOKEN")  # Bot token for telegram bot
 URL = "http://api.telegram.org/bot{0}/sendMessage".format(TOKEN)
 prefix = "[{0}] ~".format(socket.gethostname())
+SavedLastIP = GetSetting("SavedLastIP")
+
 
 def sendmsg(ip):
     print("Sending IP change message")
-    MSG = "{0} Current IP address has changed! New IP is now: {1}".format(prefix, ip)
+    MSG = "{0} Current IP address has changed! New IP is now: {1}".format(
+        prefix, ip)
     r = requests.post("{0}?chat_id={1}&text={2}".format(URL, CHATID, MSG))
+
 
 def sendmsg404(ip):
     print("Sending 404 telegram message")
-    MSG = "{0} Lastip address was not found! Current IP is: {1}".format(prefix, ip)
+    MSG = "{0} Lastip address was not found! Current IP is: {1}".format(
+        prefix, ip)
     r = requests.post("{0}?chat_id={1}&text={2}".format(URL, CHATID, MSG))
 
 ###IP Functions###
+
+
 def getip():
-    #Get IP Address using puiblic API
+    # Get IP Address using puiblic API
     website = (requests.get('http://api.ipify.org')).text
     ip = website.strip()
     print("Current Public IP is: {0}".format(ip))
     return ip
 
+
 def getLip():
-    #Read Last IP from file#
-    txt = open("lastip.txt", "r")
+    # Read Last IP from file
+    txt = open(SavedLastIP, "r")
     lastip = txt.read()
     txt.close()
     print("Last IP is: {0}".format(lastip))
     return lastip
 
+
 def setLip(ip):
     #Write IP To lastip file#
-    txt = open("lastip.txt", "w")
+    txt = open(SavedLastIP, "w")
     txt.write(ip)
     txt.close()
-    
+
 
 def CheckConnection(connected=False):
-    #Check for web connection
+    # Check for web connection
     OS = platform.platform()
     while connected == False:
-        if "Windows" in OS: # Windows and Unix have diffrent parameters for ping counts becuase standards
+        if "Windows" in OS:  # Windows and Unix have diffrent parameters for ping counts becuase standards
             pingtest = os.system("ping -n 1 8.8.8.8")
         else:
             pingtest = os.system("ping -c 1 8.8.8.8")
@@ -71,11 +83,11 @@ def CheckConnection(connected=False):
 
 
 def checkip(LastIP):
-    #Main loop for checking public IP address change
+    # Main loop for checking public IP address change
     while True:
-        print("\nLooping\n")  
-        CheckConnection() # Make sure still connected before trying to get an IP!
-        CurrentIP=getip()  
+        print("\nLooping\n")
+        CheckConnection()  # Make sure still connected before trying to get an IP!
+        CurrentIP = getip()
         if CurrentIP == LastIP:
             print("IP matched! Sleeping for a few minutes!")
             time.sleep(300)
@@ -83,17 +95,18 @@ def checkip(LastIP):
             print("IP changed!!!")
             sendmsg(CurrentIP)
             setLip(CurrentIP)
-            LastIP=getLip()
+            LastIP = CurrentIP
+
 
 ###MAIN###
-            
-#Check if there is a last IP Address
-if os.path.exists("lastip.txt"):
+# Check if there is a last IP Address
+if os.path.exists(SavedLastIP):
     print("Last IP address found!")
 else:
     print("Last IP address not found")
-    sendmsg404(getip())
-    setLip(getip())
-    
-#Run Main loop
+    CurrentIP = getip()
+    sendmsg404(CurrentIP)
+    setLip(CurrentIP)
+
+# Run Main loop
 checkip(getLip())
