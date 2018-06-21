@@ -18,30 +18,24 @@ def ChangeSetting(SettingType, SettingName, NewValue, Settings=Settings):
     with open(SettingsFile, 'w+') as JSONFile:
         json.dump(Settings, JSONFile)
 
-# Set ping command depending on platform
-if "Windows" in platform.platform():
+if "Windows" in platform.platform(): # Set ping command depending on platform
     PingCommand = "ping -n 1 8.8.8.8"
 else:
     PingCommand = "ping -c 1 8.8.8.8"
 
-##Telegram##
-ChatID = GetSetting("BOTConfig", "ChatID")  # Chat ID for telegram user/group
-URL = "http://api.telegram.org/bot{0}/sendMessage".format(GetSetting("BOTConfig", "Token")) # URL with bot token for sending message
-Prefix = "[{0}] ~".format(socket.gethostname())
-
-def SendMessage(Message):
-    print("Sending message: {0}".format(Message))
-    r = requests.post("{0}?chat_id={1}&text={2} {3}".format(URL, ChatID, Prefix, Message))
-
 ##Main Functions##
-# ConnectionCheck to ensure you're connected before attempting to grab an IP
-def CheckConnection(connected=False):
+def CheckConnection(connected=False): # ConnectionCheck to ensure you're connected before attempting to grab an IP
     while connected == False:
         if os.system(PingCommand) == 0:
             print("Network good!\n")
             connected = True
         else:
             print("Network Bad will loop!")
+
+def SendMessage(Message):
+    MessagePrefix = "[{0}] ~ ".format(socket.gethostname())
+    for ChatID in GetSetting("BOTConfig", "ChatIDs"):
+        r = requests.post("http://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}{3}".format(GetSetting("BOTConfig", "Token"), ChatID, MessagePrefix, Message))
 
 def CheckIP(LastIP):
     # Main loop for checking public IP address change
