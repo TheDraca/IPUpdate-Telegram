@@ -47,10 +47,14 @@ def CheckIP(LastIP):
             print("IP matched! Sleeping for a few minutes!")
             time.sleep(300)
         else:
-            print("IP changed!!!")
-            SendMessage("Current IP address has changed! New IP is now: {0}".format(CurrentIP))
-            ChangeSetting("Data", "LastIP", CurrentIP)
-            LastIP = CurrentIP
+            if "<" in  str(CurrentIP):
+                print("HTML error was returned rather than an IP... ignoreing")
+                time.sleep(5)
+            else:
+                print("IP changed!!!")
+                SendMessage("Current IP address has changed! New IP is now: {0}".format(CurrentIP))
+                ChangeSetting("Data", "LastIP", CurrentIP)
+                LastIP = CurrentIP
 
 # Run Main loop
 CheckIP(GetSetting("Data", "LastIP"))
