@@ -1,6 +1,6 @@
 {
   "BOTConfig": {
-    "ChatIDs": ["123456789","Optional2ndChatID],
+    "ChatIDs": ["123456789","Optional2ndChatID"],
     "Token": "12345678901:LotsOfLettersHereAndStuff"
   },
   "Data": {
