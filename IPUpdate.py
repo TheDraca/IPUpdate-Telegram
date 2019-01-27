@@ -18,10 +18,24 @@ def ChangeSetting(SettingType, SettingName, NewValue, Settings=Settings):
     with open(SettingsFile, 'w+') as JSONFile:
         json.dump(Settings, JSONFile)
 
+###Setup###
 if "Windows" in platform.platform(): # Set ping command depending on platform
     PingCommand = "ping -n 1 8.8.8.8"
 else:
     PingCommand = "ping -c 1 8.8.8.8"
+
+DomainEnabled=GetSetting("DomainConfig", "Enabled")
+
+if DomainEnabled == "True":
+    from godaddypy import Client, Account
+    Domain=GetSetting("DomainConfig", "Domain")
+    Key=GetSetting("DomainConfig", "Key")
+    Secret=GetSetting("DomainConfig","Secret")
+
+def UpdateDomain(CurrentIP):
+    client = Client(Account(api_key=Key, api_secret=Secret))
+    client.update_record_ip(CurrentIP, Domain, '@', 'A')
+
 
 ##Main Functions##
 def CheckConnection(connected=False): # ConnectionCheck to ensure you're connected before attempting to grab an IP
@@ -31,6 +45,7 @@ def CheckConnection(connected=False): # ConnectionCheck to ensure you're connect
             connected = True
         else:
             print("Network Bad will loop!")
+
 
 def SendMessage(Message):
     MessagePrefix = "[{0}] ~ ".format(socket.gethostname())
@@ -48,10 +63,11 @@ def CheckIP(LastIP):
             time.sleep(300)
         else:
             if "<" in  str(CurrentIP):
-                print("HTML error was returned rather than an IP... ignoreing")
+                print("HTML returned rather than an IP... ignoreing")
                 time.sleep(5)
             else:
                 print("IP changed!!!")
+                UpdateDomain(CurrentIP)
                 SendMessage("Current IP address has changed! New IP is now: {0}".format(CurrentIP))
                 ChangeSetting("Data", "LastIP", CurrentIP)
                 LastIP = CurrentIP
