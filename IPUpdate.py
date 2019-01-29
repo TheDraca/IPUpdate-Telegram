@@ -25,7 +25,6 @@ else:
     PingCommand = "ping -c 1 8.8.8.8"
 
 DomainEnabled=GetSetting("DomainConfig", "Enabled")
-
 if DomainEnabled == "True":
     from godaddypy import Client, Account
     Domain=GetSetting("DomainConfig", "Domain")
@@ -33,9 +32,12 @@ if DomainEnabled == "True":
     Secret=GetSetting("DomainConfig","Secret")
 
 def UpdateDomain(CurrentIP):
-    client = Client(Account(api_key=Key, api_secret=Secret))
-    client.update_record_ip(CurrentIP, Domain, '@', 'A')
-
+    if DomainEnabled == "True":
+        print("Updating domain DNS")
+        client = Client(Account(api_key=Key, api_secret=Secret))
+        client.update_record_ip(CurrentIP, Domain, '@', 'A')
+    else:
+        print("Updating domain not enabled....")
 
 ##Main Functions##
 def CheckConnection(connected=False): # ConnectionCheck to ensure you're connected before attempting to grab an IP
@@ -45,7 +47,6 @@ def CheckConnection(connected=False): # ConnectionCheck to ensure you're connect
             connected = True
         else:
             print("Network Bad will loop!")
-
 
 def SendMessage(Message):
     MessagePrefix = "[{0}] ~ ".format(socket.gethostname())
