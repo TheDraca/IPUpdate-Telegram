@@ -1,9 +1,9 @@
 import requests
-import os
-import time
-import socket
-import platform
 import json
+import os
+from time import sleep
+from socket import gethostname
+from platform import platform
 
 ##Config##
 SettingsFile = "IPUpdateSettings.json"
@@ -19,7 +19,7 @@ def ChangeSetting(SettingType, SettingName, NewValue, Settings=Settings):
         json.dump(Settings, JSONFile)
 
 ###Setup###
-if "Windows" in platform.platform(): # Set ping command depending on platform
+if "Windows" in platform(): # Set ping command depending on platform
     PingCommand = "ping -n 1 8.8.8.8"
 else:
     PingCommand = "ping -c 1 8.8.8.8"
@@ -40,16 +40,12 @@ def UpdateDomain(CurrentIP):
         print("Updating domain not enabled....")
 
 ##Main Functions##
-def CheckConnection(connected=False): # ConnectionCheck to ensure you're connected before attempting to grab an IP
-    while connected == False:
-        if os.system(PingCommand) == 0:
-            print("Network good!\n")
-            connected = True
-        else:
+def CheckConnection(): # ConnectionCheck to ensure you're connected before attempting to grab an IP
+    while os.system(PingCommand) != 0:
             print("Network Bad will loop!")
 
 def SendMessage(Message):
-    MessagePrefix = "[{0}] ~ ".format(socket.gethostname())
+    MessagePrefix = "[{0}] ~ ".format(gethostname())
     for ChatID in GetSetting("BOTConfig", "ChatIDs"):
         r = requests.post("http://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}{3}".format(GetSetting("BOTConfig", "Token"), ChatID, MessagePrefix, Message))
 
@@ -61,17 +57,16 @@ def CheckIP(LastIP):
         CurrentIP = ((requests.get('http://api.ipify.org')).text).strip() # Get IP Address using puiblic API
         if CurrentIP == LastIP:
             print("IP matched! Sleeping for a few minutes!")
-            time.sleep(300)
         else:
             if "<" in  str(CurrentIP):
                 print("HTML returned rather than an IP... ignoreing")
-                time.sleep(5)
             else:
                 print("IP changed!!!")
                 UpdateDomain(CurrentIP)
                 SendMessage("Current IP address has changed! New IP is now: {0}".format(CurrentIP))
                 ChangeSetting("Data", "LastIP", CurrentIP)
                 LastIP = CurrentIP
+        sleep(300)
 
 # Run Main loop
 CheckIP(GetSetting("Data", "LastIP"))
