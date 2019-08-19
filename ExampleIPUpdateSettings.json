@@ -1,7 +1,8 @@
 {
   "BOTConfig": {
     "ChatIDs": ["123456789","Optional2ndChatID"],
-    "Token": "12345678901:LotsOfLettersHereAndStuff"
+    "Token": "12345678901:LotsOfLettersHereAndStuff",
+    "SilentMessage": "True"
   },
   "Data": {
     "LastIP": "3.141.59.265"
