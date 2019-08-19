@@ -47,7 +47,7 @@ def CheckConnection(): # ConnectionCheck to ensure you're connected before attem
 def SendMessage(Message):
     MessagePrefix = "[{0}] ~ ".format(gethostname())
     for ChatID in GetSetting("BOTConfig", "ChatIDs"):
-        r = requests.post("http://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}{3}".format(GetSetting("BOTConfig", "Token"), ChatID, MessagePrefix, Message))
+        r = requests.post("http://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}{3}&disable_notification={4}".format(GetSetting("BOTConfig", "Token"), ChatID, MessagePrefix, Message, GetSetting("BOTConfig", "SilentMessage")))
 
 def CheckIP(LastIP):
     # Main loop for checking public IP address change
