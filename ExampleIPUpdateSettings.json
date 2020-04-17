@@ -1,11 +1,12 @@
 {
-  "BOTConfig": {
-    "ChatIDs": ["123456789","Optional2ndChatID"],
-    "Token": "12345678901:LotsOfLettersHereAndStuff",
-    "SilentMessage": "True"
-  },
   "Data": {
-    "LastIP": "3.141.59.265"
+    "LastIP": "3.141.59.168"
+  },
+  "BOTConfig": {
+    "Enabled": "True",
+    "SilentMessage": "True",
+    "Token": "12345678901:LotsOfLettersHereAndStuff",
+    "ChatIDs": ["123456789","Optional2ndChatID"],
   },
   "DomainConfig": {
     "Enabled": "True",
