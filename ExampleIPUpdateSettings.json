@@ -1,6 +1,7 @@
 {
   "Data": {
-    "LastIP": "3.141.59.168"
+    "LastIP": "3.141.59.168",
+    "TimeBetweenChecks": "300"
   },
   "BOTConfig": {
     "Enabled": "True",
@@ -10,8 +11,10 @@
   },
   "DomainConfig": {
     "Enabled": "True",
-    "Domain": "Example.com",
     "Key": "PublicKeyGoesHere",
     "Secret": "SecretGoesHere"
+    "Domain": "Example.com",
+    "RecordType": "A",
+    "RecordName": "@"
   }
 }
