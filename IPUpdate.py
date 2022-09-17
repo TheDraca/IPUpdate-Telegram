@@ -34,22 +34,36 @@ else:
     PingCommand = "ping -c 1 8.8.8.8"
 
 TimeToSleep=int(GetSetting("Data", "TimeBetweenChecks"))
+
 #Domain Functions
-DomainEnabled=GetSetting("DomainConfig", "Enabled")
-if DomainEnabled == "True":
+GoDaddyDomainEnabled=GetSetting("GoDaddyDomainConfig", "Enabled")
+if GoDaddyDomainEnabled == "True":
     from godaddypy import Client, Account
-    Domain=GetSetting("DomainConfig", "Domain")
-    Key=GetSetting("DomainConfig", "Key")
-    Secret=GetSetting("DomainConfig","Secret")
-    RecordType=GetSetting("DomainConfig","RecordType")
-    RecordName=GetSetting("DomainConfig","RecordName")
+    GoDaddy_Domain=GetSetting("GoDaddyDomainConfig", "Domain")
+    GoDaddy_Key=GetSetting("GoDaddyDomainConfig", "Key")
+    GoDaddy_Secret=GetSetting("GoDaddyDomainConfig","Secret")
+    GoDaddy_RecordType=GetSetting("GoDaddyDomainConfig","RecordType")
+    GoDaddy_RecordName=GetSetting("GoDaddyDomainConfig","RecordName")
+
+
+#Domain Functions
+NameCheapDomainEnabled=GetSetting("NameCheapDomainConfig", "Enabled")
+if NameCheapDomainEnabled == "True":
+    NameCheap_Domain=GetSetting("NameCheapDomainConfig", "Domain")
+    NameCheap_DDNS_Passwd=GetSetting("NameCheapDomainConfig","DDNS_Passwd")
+    NameCheap_RecordType=GetSetting("NameCheapDomainConfig","RecordType")
+    NameCheap_RecordName=GetSetting("NameCheapDomainConfig","RecordName")
+
 
 def UpdateDomain(CurrentIP):
-    if DomainEnabled == "True":
-        LogAndPrint("Updating domain DNS")
-        client = Client(Account(api_key=Key, api_secret=Secret))
-        client.update_record_ip(CurrentIP, Domain, RecordName, RecordType)
-    else:
+    if GoDaddyDomainEnabled == "True":
+        LogAndPrint("Updating GoDaddy domain DNS")
+        client = Client(Account(api_key=GoDaddy_Key, api_secret=GoDaddy_Secret))
+        client.update_record_ip(CurrentIP, GoDaddy_Domain, GoDaddy_RecordName, GoDaddy_RecordType)
+    if NameCheapDomainEnabled == "True":
+        LogAndPrint("Updating NameCheap domain DNS")
+        requests.get("https://dynamicdns.park-your-domain.com/update?host={0}&domain={1}&password={2}&ip={3}".format(NameCheap_RecordName,NameCheap_Domain,NameCheap_DDNS_Passwd,CurrentIP))
+    if GoDaddyDomainEnabled != "True" and NameCheapDomainEnabled != "True":
         LogAndPrint("Updating domain not enabled... Skipping")
 
 ##Main Functions##
