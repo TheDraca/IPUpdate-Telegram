@@ -9,10 +9,17 @@
     "Token": "12345678901:LotsOfLettersHereAndStuff",
     "ChatIDs": ["123456789","Optional2ndChatID"],
   },
-  "DomainConfig": {
-    "Enabled": "True",
-    "Key": "PublicKeyGoesHere",
-    "Secret": "SecretGoesHere"
+  "GoDaddyDomainConfig": {
+    "Enabled": "False",
+    "Secret": "PublicKeyGoesHere",
+    "Key": "SecretGoesHere",
+    "Domain": "Example.com",
+    "RecordType": "A",
+    "RecordName": "@"
+  },
+  "NameCheapDomainConfig": {
+    "Enabled": "False",
+    "DDNS_Passwd": "DDNSPasswordGoesHere",
     "Domain": "Example.com",
     "RecordType": "A",
     "RecordName": "@"
