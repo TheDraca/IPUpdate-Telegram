@@ -23,5 +23,13 @@
     "Domain": "Example.com",
     "RecordType": "A",
     "RecordName": "@"
-  }
+  },
+   "CloudflareDomainConfig": {
+    "Enabled": "True",
+    "Token": "YourCloudflareTokenGoesHere",
+    "ZoneID": "YouDNSZoneIDGoesHere",
+    "Domain": "Example.com",
+    "RecordType": "A",
+    "RecordName": "@"
+    }
 }
