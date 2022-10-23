@@ -7,7 +7,7 @@ from platform import platform
 import requests
 
 #Funtion for logging and printing outputs with a time stamp
-def LogAndPrint(message, File="Log.txt"):
+def LogAndPrint(message, File="IPUpdate.log"):
     TimeStamp=datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     message=TimeStamp+" - "+message
     print(message)
@@ -35,7 +35,7 @@ else:
 
 TimeToSleep=int(GetSetting("Data", "TimeBetweenChecks"))
 
-#Domain Functions
+#Domain Functions for GoDaddy
 GoDaddyDomainEnabled=GetSetting("GoDaddyDomainConfig", "Enabled")
 if GoDaddyDomainEnabled == "True":
     from godaddypy import Client, Account
@@ -46,13 +46,43 @@ if GoDaddyDomainEnabled == "True":
     GoDaddy_RecordName=GetSetting("GoDaddyDomainConfig","RecordName")
 
 
-#Domain Functions
+#Domain Functions for NameCheap
 NameCheapDomainEnabled=GetSetting("NameCheapDomainConfig", "Enabled")
 if NameCheapDomainEnabled == "True":
     NameCheap_Domain=GetSetting("NameCheapDomainConfig", "Domain")
     NameCheap_DDNS_Passwd=GetSetting("NameCheapDomainConfig","DDNS_Passwd")
     NameCheap_RecordType=GetSetting("NameCheapDomainConfig","RecordType")
     NameCheap_RecordName=GetSetting("NameCheapDomainConfig","RecordName")
+
+#Domain Functions for Cloudflare
+CloudflareDomainEnabled=GetSetting("CloudflareDomainConfig", "Enabled")
+if CloudflareDomainEnabled == "True":
+    Cloudflare_Domain=GetSetting("CloudflareDomainConfig", "Domain")
+    Cloudflare_Token=GetSetting("CloudflareDomainConfig","Token")
+    Cloudflare_ZoneID=GetSetting("CloudflareDomainConfig","ZoneID")
+    Cloudflare_RecordType=GetSetting("CloudflareDomainConfig","RecordType")
+    Cloudflare_RecordName=GetSetting("CloudflareDomainConfig","RecordName")
+
+    CloudflareAPIURL="https://api.cloudflare.com/client/v4/zones/{0}/dns_records".format(Cloudflare_ZoneID)
+
+    #Extra function for grabbing existing DNS entry ID
+    def GetCloudfalreEntryID(Cloudflare_RecordType,Cloudflare_RecordName,Cloudflare_Domain,CloudflareAPIURL):
+        #Store API Response
+        CloudflareResponse=requests.get("{0}?type={1}&name={2}.{3}".format(CloudflareAPIURL,Cloudflare_RecordType,Cloudflare_RecordName,Cloudflare_Domain), headers={"Authorization": "Bearer {0}".format(Cloudflare_Token)})
+
+        #Turn the response into a json and pull the results
+        CloudflareResponse=(CloudflareResponse.json()).get("result")
+
+        #Store the results as dir:
+        CloudflareResponse=dict(CloudflareResponse[0]).items()
+
+        #Find the id with a quick search:
+        for Key,Value in CloudflareResponse:
+            if Key == "id":
+                CloudflareCurrentDNSEntryID=Value
+                break
+        #Returrn this value
+        return CloudflareCurrentDNSEntryID
 
 
 def UpdateDomain(CurrentIP):
@@ -63,7 +93,11 @@ def UpdateDomain(CurrentIP):
     if NameCheapDomainEnabled == "True":
         LogAndPrint("Updating NameCheap domain DNS")
         requests.get("https://dynamicdns.park-your-domain.com/update?host={0}&domain={1}&password={2}&ip={3}".format(NameCheap_RecordName,NameCheap_Domain,NameCheap_DDNS_Passwd,CurrentIP))
-    if GoDaddyDomainEnabled != "True" and NameCheapDomainEnabled != "True":
+    if CloudflareDomainEnabled == "True":
+        LogAndPrint("Updating Cloudflare domain DNS")
+        CloudflareCurrentDNSEntryID=GetCloudfalreEntryID(Cloudflare_RecordType,Cloudflare_RecordName,Cloudflare_Domain,CloudflareAPIURL)
+        requests.patch("{0}/{1}".format(CloudflareAPIURL,CloudflareCurrentDNSEntryID,CurrentIP), headers={"Authorization": "Bearer {0}".format(Cloudflare_Token)}, json={'content': CurrentIP})
+    if GoDaddyDomainEnabled != "True" and NameCheapDomainEnabled != "True" and CloudflareDomainEnabled != "True":
         LogAndPrint("Updating domain not enabled... Skipping")
 
 ##Main Functions##
