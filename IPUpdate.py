@@ -115,19 +115,24 @@ def SendMessage(Message):
 def CheckIP(LastIP):
     # Main loop for checking public IP address change
     while True:
-        CheckConnection()  # Check device is still connected to the net
-        CurrentIP = ((requests.get('http://api.ipify.org')).text).strip() # Get IP Address using puiblic API
-        if CurrentIP == LastIP:
-            LogAndPrint("Current IP matched IP in JSON file")
-        else:
-            if "<" in  str(CurrentIP):
-                LogAndPrint("HTML returned rather than an IP... ignoreing")
-            else:
-                LogAndPrint("IP Has changed! Last known IP was {0}, New IP is now: {1}".format(LastIP,CurrentIP))
-                UpdateDomain(CurrentIP)
-                SendMessage("Current IP address has changed! New IP is now: {0}".format(CurrentIP))
-                ChangeSetting("Data", "LastIP", CurrentIP)
-                LastIP = CurrentIP
+        try:
+            CheckConnection()  # Check device is still connected to the net
+            APIResponse=requests.get('http://api.ipify.org')
+            if str(APIResponse) == "<Response [200]>":
+                CurrentIP=APIResponse.text.strip() # Get IP Address using puiblic API
+                if CurrentIP == LastIP:
+                    LogAndPrint("Current IP matched IP in JSON file")
+                else:
+                    if "<" in  str(CurrentIP):
+                        LogAndPrint("HTML returned rather than an IP... ignoreing")
+                    else:
+                        LogAndPrint("IP Has changed! Last known IP was {0}, New IP is now: {1}".format(LastIP,CurrentIP))
+                        UpdateDomain(CurrentIP)
+                        SendMessage("Current IP address has changed! New IP is now: {0}".format(CurrentIP))
+                        ChangeSetting("Data", "LastIP", CurrentIP)
+                        LastIP = CurrentIP
+        except:
+            LogAndPrint("Unknown error occured, looping")
         LogAndPrint("Sleeping for {0} secs".format(TimeToSleep))
         sleep(TimeToSleep)
 
