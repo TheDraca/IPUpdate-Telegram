@@ -1,7 +1,8 @@
 {
   "Data": {
     "LastIP": "3.141.59.168",
-    "TimeBetweenChecks": "300"
+    "TimeBetweenChecks": "300",
+    "LogFile": "IPUpdate.log"
   },
   "BOTConfig": {
     "Enabled": "True",
