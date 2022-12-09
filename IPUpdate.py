@@ -6,14 +6,6 @@ from socket import gethostname
 from platform import platform
 import requests
 
-#Funtion for logging and printing outputs with a time stamp
-def LogAndPrint(message, File="IPUpdate.log"):
-    TimeStamp=datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    message=TimeStamp+" - "+message
-    print(message)
-    with open(File, "a+") as LogFile:
-        LogFile.write(message+"\n")
-
 ##Config##
 SettingsFile = "IPUpdateSettings.json"
 with open(SettingsFile) as JSONFile:
@@ -26,6 +18,15 @@ def ChangeSetting(SettingType, SettingName, NewValue, Settings=Settings):
     (Settings[SettingType])[SettingName] = NewValue
     with open(SettingsFile, 'w+') as JSONFile:
         json.dump(Settings, JSONFile)
+
+#Funtion for logging and printing outputs with a time stamp
+def LogAndPrint(message, File=GetSetting("Data","LogFile")):
+    TimeStamp=datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    message=TimeStamp+" - "+message
+    print(message)
+    with open(File, "a+") as LogFile:
+        LogFile.write(message+"\n")
+
 
 ###Setup###
 if "Windows" in platform(): # Set ping command depending on platform
