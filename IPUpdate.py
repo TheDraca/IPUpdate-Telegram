@@ -118,9 +118,11 @@ def CheckIP(LastIP):
     while True:
         try:
             CheckConnection()  # Check device is still connected to the net
-            APIResponse=requests.get('http://api.ipify.org')
-            if str(APIResponse) == "<Response [200]>":
-                CurrentIP=APIResponse.text.strip() # Get IP Address using puiblic API
+            APIResponse=requests.get('https://api.ipify.org?format=json') # Get IP Address using public API
+            if int(APIResponse.status_code) == 200:
+                CurrentIP=json.loads(APIResponse.text) #Json of public api in format {"ip":"1.2.3.4"}
+                CurrentIP=CurrentIP["ip"] #Store just the IP i.e 1.2.3.4
+
                 if CurrentIP == LastIP:
                     LogAndPrint("Current IP matched IP in JSON file")
                 else:
