@@ -127,7 +127,7 @@ def CheckIP(LastIP):
                     LogAndPrint("Current IP matched IP in JSON file")
                 else:
                     if "<" in  str(CurrentIP):
-                        LogAndPrint("HTML returned rather than an IP... ignoreing")
+                        LogAndPrint("HTML returned rather than an IP... ignoring")
                     else:
                         LogAndPrint("IP Has changed! Last known IP was {0}, New IP is now: {1}".format(LastIP,CurrentIP))
                         UpdateDomain(CurrentIP)
