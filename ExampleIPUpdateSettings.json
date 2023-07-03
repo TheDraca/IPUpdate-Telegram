@@ -8,7 +8,7 @@
     "Enabled": "True",
     "SilentMessage": "True",
     "Token": "12345678901:LotsOfLettersHereAndStuff",
-    "ChatIDs": ["123456789","Optional2ndChatID"],
+    "ChatIDs": ["123456789","Optional2ndChatID"]
   },
   "GoDaddyDomainConfig": {
     "Enabled": "False",
@@ -26,7 +26,7 @@
     "RecordName": "@"
   },
    "CloudflareDomainConfig": {
-    "Enabled": "True",
+    "Enabled": "False",
     "Token": "YourCloudflareTokenGoesHere",
     "ZoneID": "YouDNSZoneIDGoesHere",
     "Domain": "Example.com",
