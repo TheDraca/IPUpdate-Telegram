@@ -107,12 +107,18 @@ def CheckConnection(): # ConnectionCheck to ensure you're connected before attem
         LogAndPrint("Network Bad will loop!")
 
 def SendMessage(Message):
-    if GetSetting("BOTConfig", "Enabled") == "True":
-        MessagePrefix = "[{0}] ~ ".format(gethostname())
-        for ChatID in GetSetting("BOTConfig", "ChatIDs"):
-            LogAndPrint("Sending telegram message to {0}".format(ChatID))
-            requests.post("http://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}{3}&disable_notification={4}".format(GetSetting("BOTConfig", "Token"), ChatID, MessagePrefix, Message, GetSetting("BOTConfig", "SilentMessage")))
+    try:
+        if GetSetting("BOTConfig", "Enabled") == "True":
+            MessagePrefix = "[{0}] ~ ".format(gethostname())
+            for ChatID in GetSetting("BOTConfig", "ChatIDs"):
+                LogAndPrint("Sending telegram message to {0}".format(ChatID))
+                MessageUpdate=requests.post("https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}{3}&disable_notification={4}".format(GetSetting("BOTConfig", "Token"), ChatID, MessagePrefix, Message, GetSetting("BOTConfig", "SilentMessage")))
 
+                if int(MessageUpdate.status_code) != 200:
+                    LogAndPrint("HTTP error {0}".format(MessageUpdate.status_code))
+                    raise Exception ("http_error")
+    except:
+        LogAndPrint("Error sending telegram message")
 def CheckIP(LastIP):
     # Main loop for checking public IP address change
     while True:
