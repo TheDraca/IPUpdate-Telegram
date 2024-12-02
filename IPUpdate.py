@@ -36,24 +36,6 @@ else:
 
 TimeToSleep=int(GetSetting("Data", "TimeBetweenChecks"))
 
-#Domain Functions for GoDaddy
-GoDaddyDomainEnabled=GetSetting("GoDaddyDomainConfig", "Enabled")
-if GoDaddyDomainEnabled == "True":
-    from godaddypy import Client, Account
-    GoDaddy_Domain=GetSetting("GoDaddyDomainConfig", "Domain")
-    GoDaddy_Key=GetSetting("GoDaddyDomainConfig", "Key")
-    GoDaddy_Secret=GetSetting("GoDaddyDomainConfig","Secret")
-    GoDaddy_RecordType=GetSetting("GoDaddyDomainConfig","RecordType")
-    GoDaddy_RecordName=GetSetting("GoDaddyDomainConfig","RecordName")
-
-
-#Domain Functions for NameCheap
-NameCheapDomainEnabled=GetSetting("NameCheapDomainConfig", "Enabled")
-if NameCheapDomainEnabled == "True":
-    NameCheap_Domain=GetSetting("NameCheapDomainConfig", "Domain")
-    NameCheap_DDNS_Passwd=GetSetting("NameCheapDomainConfig","DDNS_Passwd")
-    NameCheap_RecordType=GetSetting("NameCheapDomainConfig","RecordType")
-    NameCheap_RecordName=GetSetting("NameCheapDomainConfig","RecordName")
 
 #Domain Functions for Cloudflare
 CloudflareDomainEnabled=GetSetting("CloudflareDomainConfig", "Enabled")
@@ -87,18 +69,11 @@ if CloudflareDomainEnabled == "True":
 
 
 def UpdateDomain(CurrentIP):
-    if GoDaddyDomainEnabled == "True":
-        LogAndPrint("Updating GoDaddy domain DNS")
-        client = Client(Account(api_key=GoDaddy_Key, api_secret=GoDaddy_Secret))
-        client.update_record_ip(CurrentIP, GoDaddy_Domain, GoDaddy_RecordName, GoDaddy_RecordType)
-    if NameCheapDomainEnabled == "True":
-        LogAndPrint("Updating NameCheap domain DNS")
-        requests.get("https://dynamicdns.park-your-domain.com/update?host={0}&domain={1}&password={2}&ip={3}".format(NameCheap_RecordName,NameCheap_Domain,NameCheap_DDNS_Passwd,CurrentIP))
     if CloudflareDomainEnabled == "True":
         LogAndPrint("Updating Cloudflare domain DNS")
         CloudflareCurrentDNSEntryID=GetCloudfalreEntryID(Cloudflare_RecordType,Cloudflare_RecordName,Cloudflare_Domain,CloudflareAPIURL)
         requests.patch("{0}/{1}".format(CloudflareAPIURL,CloudflareCurrentDNSEntryID,CurrentIP), headers={"Authorization": "Bearer {0}".format(Cloudflare_Token)}, json={'content': CurrentIP})
-    if GoDaddyDomainEnabled != "True" and NameCheapDomainEnabled != "True" and CloudflareDomainEnabled != "True":
+    else:
         LogAndPrint("Updating domain not enabled... Skipping")
 
 ##Main Functions##
