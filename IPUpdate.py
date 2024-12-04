@@ -1,4 +1,4 @@
-from datetime import datetime
+import logging
 import json
 import os
 from time import sleep
@@ -19,27 +19,41 @@ def ChangeSetting(SettingType, SettingName, NewValue, Settings=Settings):
     with open(SettingsFile, 'w+') as JSONFile:
         json.dump(Settings, JSONFile)
 
-#Funtion for logging and printing outputs with a time stamp
-def LogAndPrint(message, File=GetSetting("Data","LogFile")):
-    TimeStamp=datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    message=TimeStamp+" - "+message
-    print(message)
-    with open(File, "a+") as LogFile:
-        LogFile.write(message+"\n")
+
+#Set debug level to debug if the settings file says so, else we're on info
+if GetSetting("Data", "DebugEnabled").lower() == "true":
+    logging.basicConfig(level=logging.DEBUG,format='%(asctime)s - %(levelname)s - %(message)s',filename=(GetSetting("Data", "LogFile")))
+else:
+    logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s',filename=(GetSetting("Data", "LogFile")))
+
+#Set request's logging level to warning to avoid tokens in log file
+logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+
+
+#Announce the script has started
+logging.info("---------- Starting IPUpdate! ----------")
+
 
 
 ###Setup###
 if "Windows" in platform(): # Set ping command depending on platform
     PingCommand = "ping -n 1 8.8.8.8"
+    logging.debug("Windows detected using ping -n for internet checks")
 else:
+    logging.debug("NOT Windows detected using ping -c for internet checks")
     PingCommand = "ping -c 1 8.8.8.8"
 
 TimeToSleep=int(GetSetting("Data", "TimeBetweenChecks"))
 
 
 #Domain Functions for Cloudflare
-CloudflareDomainEnabled=GetSetting("CloudflareDomainConfig", "Enabled")
-if CloudflareDomainEnabled == "True":
+if GetSetting("CloudflareDomainConfig", "Enabled").lower() == "true":
+    CloudflareDomainEnabled=True
+else:
+    CloudflareDomainEnabled=False
+
+if CloudflareDomainEnabled:
     Cloudflare_Domain=GetSetting("CloudflareDomainConfig", "Domain")
     Cloudflare_Token=GetSetting("CloudflareDomainConfig","Token")
     Cloudflare_ZoneID=GetSetting("CloudflareDomainConfig","ZoneID")
@@ -69,31 +83,31 @@ if CloudflareDomainEnabled == "True":
 
 
 def UpdateDomain(CurrentIP):
-    if CloudflareDomainEnabled == "True":
-        LogAndPrint("Updating Cloudflare domain DNS")
+    if CloudflareDomainEnabled:
+        logging.info("Updating Cloudflare domain DNS")
         CloudflareCurrentDNSEntryID=GetCloudfalreEntryID(Cloudflare_RecordType,Cloudflare_RecordName,Cloudflare_Domain,CloudflareAPIURL)
         requests.patch("{0}/{1}".format(CloudflareAPIURL,CloudflareCurrentDNSEntryID,CurrentIP), headers={"Authorization": "Bearer {0}".format(Cloudflare_Token)}, json={'content': CurrentIP})
     else:
-        LogAndPrint("Updating domain not enabled... Skipping")
+        logging.info("Updating domain not enabled... Skipping")
 
 ##Main Functions##
 def CheckConnection(): # ConnectionCheck to ensure you're connected before attempting to grab an IP
     while os.system(PingCommand) != 0:
-        LogAndPrint("Network Bad will loop!")
+        logging.warning("Network Bad will loop!")
 
 def SendMessage(Message):
     try:
-        if GetSetting("BOTConfig", "Enabled") == "True":
+        if GetSetting("BOTConfig", "Enabled").lower () == "true":
             MessagePrefix = "[{0}] ~ ".format(gethostname())
             for ChatID in GetSetting("BOTConfig", "ChatIDs"):
-                LogAndPrint("Sending telegram message to {0}".format(ChatID))
+                logging.info("Sending telegram message to {0}".format(ChatID))
                 MessageUpdate=requests.post("https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}{3}&disable_notification={4}".format(GetSetting("BOTConfig", "Token"), ChatID, MessagePrefix, Message, GetSetting("BOTConfig", "SilentMessage")))
 
                 if int(MessageUpdate.status_code) != 200:
-                    LogAndPrint("HTTP error {0}".format(MessageUpdate.status_code))
+                    logging.warning("HTTP error {0}".format(MessageUpdate.status_code))
                     raise Exception ("http_error")
     except:
-        LogAndPrint("Error sending telegram message")
+        logging.warning("Error sending telegram message")
 def CheckIP(LastIP):
     # Main loop for checking public IP address change
     while True:
@@ -105,20 +119,22 @@ def CheckIP(LastIP):
                 CurrentIP=CurrentIP["ip"] #Store just the IP i.e 1.2.3.4
 
                 if CurrentIP == LastIP:
-                    LogAndPrint("Current IP matched IP in JSON file")
+                    logging.info("Current IP matched IP in JSON file")
                 else:
                     if "<" in  str(CurrentIP):
-                        LogAndPrint("HTML returned rather than an IP... ignoring")
+                        logging.warning("HTML returned rather than an IP... ignoring")
                     else:
-                        LogAndPrint("IP Has changed! Last known IP was {0}, New IP is now: {1}".format(LastIP,CurrentIP))
+                        logging.info("IP Has changed! Last known IP was {0}, New IP is now: {1}".format(LastIP,CurrentIP))
                         UpdateDomain(CurrentIP)
                         SendMessage("Current IP address has changed! New IP is now: {0}".format(CurrentIP))
                         ChangeSetting("Data", "LastIP", CurrentIP)
                         LastIP = CurrentIP
         except:
-            LogAndPrint("Unknown error occured, looping")
-        LogAndPrint("Sleeping for {0} secs".format(TimeToSleep))
+            logging.error("Unknown error occured, looping")
+        logging.info("Sleeping for {0} secs".format(TimeToSleep))
         sleep(TimeToSleep)
+
+
 
 # Run Main loop
 CheckIP(GetSetting("Data", "LastIP"))

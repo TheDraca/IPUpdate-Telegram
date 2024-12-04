@@ -2,7 +2,8 @@
   "Data": {
     "LastIP": "3.141.59.168",
     "TimeBetweenChecks": "300",
-    "LogFile": "IPUpdate.log"
+    "LogFile": "IPUpdate.log",
+    "DebugEnabled": "False"
   },
   "BOTConfig": {
     "Enabled": "True",
